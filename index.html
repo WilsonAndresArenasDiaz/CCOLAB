@@ -1,743 +1,488 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CrediLab - Sistema de Flujo y Control Tecnológico</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Iconos Lucide para una apariencia ultra-moderna -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CCO Service Hub - Control de Laboratorio</title>
+    <link rel="stylesheet" href="style.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
-    <div class="app-container">
-        
-        <!-- HEADER PRINCIPAL MODULAR CON TEMA CLARO Y MARCA -->
-        <header class="animate-fade-in">
-            <div class="logo-section">
-                <div class="logo-icon">C</div>
-                <div class="logo-text">
-                    <h1 id="header-app-title">CrediLab</h1>
-                    <p id="header-app-subtitle">CONTROL INTEGRADO DE PROCESOS</p>
-                </div>
+<!-- ============================================================ -->
+<!-- MODAL DE LOGIN -->
+<!-- ============================================================ -->
+<div id="login-overlay" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15,23,42,0.6); backdrop-filter: blur(8px); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+    <div style="background: #ffffff; padding: 40px; border-radius: 24px; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); border: 1px solid #e2e8f0;">
+        <div style="text-align: center; margin-bottom: 24px;">
+            <img src="https://cdn.screenshottocode.com/xOsT0p1qvh7M0RXGbohTu.png" alt="CCO Service Hub" style="max-width: 180px; margin-bottom: 8px;" />
+            <h2 style="font-family: 'Outfit', sans-serif; color: #0f172a; margin: 0;">Acceso al Sistema</h2>
+            <p style="color: #475569; font-size: 13px; margin-top: 4px;">Ingresa tus credenciales de taller</p>
+        </div>
+        <form id="login-form">
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label for="login-username">Usuario</label>
+                <input type="text" id="login-username" placeholder="Ej. wilson" class="form-control" required />
             </div>
-
-            <!-- Navegación de Cuatro Módulos Principales -->
-            <nav class="module-navigation" id="main-nav-bar">
-                <button class="nav-tab active" id="btn-mod-repairs">
-                    <i data-lucide="workflow"></i> Estaciones de Proceso
-                </button>
-                <button class="nav-tab" id="btn-mod-inventory">
-                    <i data-lucide="package-open"></i> Almacén de Repuestos
-                </button>
-                <button class="nav-tab" id="btn-mod-staff">
-                    <i data-lucide="users-round"></i> Personal & Herramientas
-                </button>
-                <button class="nav-tab" id="btn-mod-tv">
-                    <i data-lucide="monitor"></i> Pantalla TV (Monitor)
-                </button>
-            </nav>
-
-            <div class="header-info">
-                <div id="live-time">Cargando fecha y hora...</div>
-                <div id="technician-name">🧪 LAB. ELECTRÓNICA | <strong>CREDIBANCO S.A.</strong></div>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="login-password">Contraseña</label>
+                <input type="password" id="login-password" placeholder="••••••••" class="form-control" required />
             </div>
-        </header>
+            <button type="submit" class="btn btn-primary" style="width:100%;">
+                <i data-lucide="log-in"></i> Iniciar Sesión
+            </button>
+            <div id="login-error" style="color: #ef4444; font-size: 12px; margin-top: 10px; text-align: center; display: none;">Usuario o contraseña incorrectos.</div>
+        </form>
+        <p style="font-size: 10px; color: #94a3b8; text-align: center; margin-top: 16px;">Contacta a tu coordinador si no tienes acceso.</p>
+    </div>
+</div>
 
-        <!-- AVISO DE VISTA FILTRADA (ENLACE DE TÉCNICO) -->
-        <div id="tech-filter-banner" style="display: none; justify-content: space-between; align-items: center; background: rgba(0, 175, 170, 0.08); border: 1px solid var(--aquamarine); padding: 12px 20px; border-radius: 12px; margin-bottom: 20px; animation: fadeIn 0.3s ease;">
-            <div style="font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="user-check" style="color: var(--aquamarine);"></i>
-                <span>Estás viendo la cola de trabajo personal filtrada para: <strong id="tech-filter-name" style="color: var(--aquamarine);"></strong></span>
+<!-- ============================================================ -->
+<!-- APP PRINCIPAL -->
+<!-- ============================================================ -->
+<div class="app-container" id="app-main" style="display: none;">
+
+    <!-- HEADER -->
+    <header class="animate-fade-in">
+        <div class="logo-section">
+            <div class="logo-icon" style="background: transparent; box-shadow: none; width: auto; height: auto;">
+                <img src="https://cdn.screenshottocode.com/xOsT0p1qvh7M0RXGbohTu.png" alt="CCO Service Hub" style="height: 45px; width: auto; object-fit: contain;" />
             </div>
-            <button onclick="clearTechFilter()" class="btn" style="width: auto; padding: 6px 12px; font-size: 11.5px; background: rgba(255, 198, 0, 0.15); color: #b88a00; border: 1px solid var(--ochre-yellow);">
-                <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Ver Todo el Taller
+            <div class="logo-text">
+                <h1 id="header-app-title">CCO Service Hub</h1>
+                <p id="header-app-subtitle">NEXGO COLOMBIA & CHINA</p>
+            </div>
+        </div>
+
+        <nav class="module-navigation" id="main-nav-bar">
+            <button class="nav-tab active" id="btn-mod-repairs"><i data-lucide="workflow"></i> Estaciones</button>
+            <button class="nav-tab" id="btn-mod-inventory"><i data-lucide="package-open"></i> Almacén</button>
+            <button class="nav-tab" id="btn-mod-staff"><i data-lucide="users-round"></i> Personal</button>
+            <button class="nav-tab" id="btn-mod-tv"><i data-lucide="monitor"></i> TV</button>
+            <button class="nav-tab" id="btn-mod-analytics" style="display:none;"><i data-lucide="bar-chart-2"></i> Analytics</button>
+            <button class="nav-tab" id="btn-mod-coordinator" style="display:none;"><i data-lucide="clipboard-check"></i> Coordinador</button>
+        </nav>
+
+        <div class="header-info" style="display: flex; align-items: center; gap: 15px;">
+            <div style="text-align: right;">
+                <div id="live-time">Cargando...</div>
+                <div id="technician-name" style="font-size: 11px; color: var(--text-secondary);">👤 <span id="display-username">Usuario</span> | <span id="display-role">Rol</span></div>
+            </div>
+            <button onclick="logout()" class="btn btn-secondary" style="width: auto; padding: 6px 12px; font-size: 11px; border-color: #e2e8f0;">
+                <i data-lucide="log-out" style="width: 14px; height: 14px;"></i>
             </button>
         </div>
+    </header>
 
-
-        <!-- ================= MÓDULO 1: ESTACIONES DE PROCESO (KANBAN) ================= -->
-        <div id="module-repairs" class="module-view active">
-            
-            <!-- CONTENEDOR DE INDICADORES DE VOLUMEN POR ESTACIÓN -->
-            <section class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-info">
-                        <h3>Diagnóstico General</h3>
-                        <div class="metric-value" id="metric-recibo">0</div>
-                    </div>
-                    <div class="metric-icon">
-                        <i data-lucide="file-text"></i>
-                    </div>
-                </div>
-
-                <div class="metric-card">
-                    <div class="metric-info">
-                        <h3>Apertura y Reparación</h3>
-                        <div class="metric-value" id="metric-taller">0</div>
-                    </div>
-                    <div class="metric-icon">
-                        <i data-lucide="activity"></i>
-                    </div>
-                </div>
-
-                <div class="metric-card">
-                    <div class="metric-info">
-                        <h3>Pruebas y Limpieza</h3>
-                        <div class="metric-value" id="metric-software">0</div>
-                    </div>
-                    <div class="metric-icon">
-                        <i data-lucide="binary"></i>
-                    </div>
-                </div>
-
-                <div class="metric-card">
-                    <div class="metric-info">
-                        <h3>Eficiencia del Taller</h3>
-                        <div class="metric-value" id="metric-repairs-eff">100%</div>
-                    </div>
-                    <div class="metric-icon">
-                        <i data-lucide="check-check"></i>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TABLERO VISUAL DE LAS 5 ESTACIONES DE LABORATORIO -->
-            <section class="control-panel" style="background: rgba(255,255,255,0.4); border-color: rgba(0, 175, 170, 0.15);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
-                    <h2 class="panel-title" style="margin-bottom: 0; border-bottom: none; padding-bottom: 0;">
-                        <i data-lucide="arrow-right-left" style="color: var(--aquamarine);"></i>
-                        <span>Flujo Lineal de Equipos en Laboratorio</span>
-                    </h2>
-                    
-                    <!-- BOTÓN PREMIUM EXPORTAR EXCEL CSV -->
-                    <button class="btn btn-secondary" onclick="exportToCSV()" style="width: auto; font-size: 12px; padding: 7px 14px; display: inline-flex; align-items: center; gap: 6px;">
-                        <i data-lucide="file-spreadsheet" style="color: var(--aquamarine); width: 16px; height: 16px;"></i>
-                        <span>Exportar Reporte a Excel</span>
-                    </button>
-                </div>
-                
-                <div class="pipeline-container" style="grid-template-columns: repeat(4, 1fr);">
-                    
-                    <!-- ESTACIÓN 1: DIAGNÓSTICO -->
-                    <div class="pipeline-lane" id="lane-diagnostico">
-                        <div class="lane-header">
-                            <span class="lane-title" title="Diagnóstico inicial del equipo">🔍 1. Diagnóstico <span style="font-size:10px; color:var(--text-secondary); opacity:0.8;">(WIP: 1)</span></span>
-                            <span class="lane-counter" id="count-diagnostico">0</span>
-                        </div>
-                        <div class="lane-cards-container" id="cards-diagnostico">
-                            <!-- Inyectado dinámicamente -->
-                        </div>
-                    </div>
-
-                    <!-- ESTACIÓN 2: APERTURA Y REPARACIÓN -->
-                    <div class="pipeline-lane" id="lane-apertura">
-                        <div class="lane-header" style="position: relative;">
-                            <span class="lane-title" title="Desensamble y reparación física">🛠️ 2. Apertura <span style="font-size:10px; color:var(--text-secondary); opacity:0.8;">(WIP: 1)</span></span>
-                            <span class="lane-counter" id="count-apertura">0</span>
-                            <div class="flex-warning-badge" style="position: absolute; bottom: -8px; left: 4px; font-size: 8.5px; font-weight: 800; color: #ff5252; background: rgba(255, 82, 82, 0.1); padding: 1px 4px; border-radius: 4px; border: 1px solid rgba(255, 82, 82, 0.2);">⚠️ ¡CUIDADO FLEX!</div>
-                        </div>
-                        <div style="height: 10px;"></div> <!-- Espacio para el badge -->
-                        <div class="lane-cards-container" id="cards-apertura">
-                            <!-- Inyectado dinámicamente -->
-                        </div>
-                    </div>
-
-                    <!-- ESTACIÓN 3: PRUEBAS FUNCIONALES -->
-                    <div class="pipeline-lane" id="lane-pruebas">
-                        <div class="lane-header">
-                            <span class="lane-title" title="Testeo funcional y de hardware">🧪 3. Pruebas <span style="font-size:10px; color:var(--text-secondary); opacity:0.8;">(WIP: 1)</span></span>
-                            <span class="lane-counter" id="count-pruebas">0</span>
-                        </div>
-                        <div class="lane-cards-container" id="cards-pruebas">
-                            <!-- Inyectado dinámicamente -->
-                        </div>
-                    </div>
-
-                    <!-- ESTACIÓN 4: LIMPIEZA Y ALISTAMIENTO -->
-                    <div class="pipeline-lane" id="lane-limpieza">
-                        <div class="lane-header">
-                            <span class="lane-title" title="Carga de software, limpieza y alistamiento final">💾 4. Limpieza/Soft. <span style="font-size:10px; color:var(--text-secondary); opacity:0.8;">(WIP: 1)</span></span>
-                            <span class="lane-counter" id="count-limpieza">0</span>
-                        </div>
-                        <div class="lane-cards-container" id="cards-limpieza">
-                            <!-- Inyectado dinámicamente -->
-                        </div>
-                    </div>
-
-                </div>
-            </section>
-
-            <!-- CONTROLES ADICIONALES (REGISTRO & DIAGNÓSTICOS) -->
-            <main class="main-layout">
-                
-                <!-- COLUMNA IZQUIERDA: REGISTRAR DATÁFONO -->
-                <div class="col-left">
-                    <div class="control-panel">
-                        <h2 class="panel-title">
-                            <i data-lucide="plus-circle" style="color: var(--aquamarine);"></i>
-                            <span>Ingresar Datáfono al Flujo</span>
-                        </h2>
-                        
-                        <form id="repair-form">
-                            <input type="hidden" id="edit-index" value="-1">
-                            
-                            <div class="form-group">
-                                <label for="eq-model">Modelo de Datáfono</label>
-                                <select id="eq-model" required>
-                                    <option value="" disabled selected>Selecciona un modelo...</option>
-                                    <optgroup label="Nexgo POS (Centrales)">
-                                        <option value="Nexgo N6">Nexgo N6 (Mini Smart POS Android)</option>
-                                        <option value="Nexgo N86">Nexgo N86 (Smart POS Android)</option>
-                                        <option value="Nexgo KD69">Nexgo KD69 (Smart/Classic GPRS/WiFi)</option>
-                                        <option value="Nexgo UN20">Nexgo UN20 (Desatendido / Vending)</option>
-                                    </optgroup>
-                                    <optgroup label="Modelos Secundarios">
-                                        <option value="Ingenico Axium DX8000">Ingenico Axium DX8000 (Android)</option>
-                                        <option value="Ingenico Move/5000">Ingenico Move/5000 (Clásico)</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="eq-serial">Número de Serie (S/N)</label>
-                                <input type="text" id="eq-serial" placeholder="Ej. SN-82918239" required class="form-control">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="eq-failure-type">Falla Detectada</label>
-                                <select id="eq-failure-type" required>
-                                    <option value="" disabled selected>Selecciona tipo de falla...</option>
-                                    <option value="Puerto de carga dañado / No enciende">Puerto de carga dañado / No enciende</option>
-                                    <option value="Batería no retiene carga / Inflada">Batería no retiene carga / Inflada</option>
-                                    <option value="Lector de chip no lee tarjetas">Lector de chip no lee tarjetas</option>
-                                    <option value="Alerta de Seguridad (Tamper Alert / Bloqueado)">Alerta de Seguridad (Tamper Alert / Bloqueado)</option>
-                                    <option value="Error de software / Loop de reinicio (Android)">Error de software / Loop de reinicio (Android)</option>
-                                    <option value="Falla de Comunicación (GPRS/Wi-Fi/Ethernet)">Falla de Comunicación (GPRS/Wi-Fi/Ethernet)</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="eq-tech-assign">Asignar Técnico Responsable</label>
-                                <select id="eq-tech-assign" required>
-                                    <option value="" disabled selected>Selecciona técnico...</option>
-                                    <!-- Cargado dinámicamente -->
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="eq-station">Estación Inicial</label>
-                                <select id="eq-station" required>
-                                    <option value="diagnostico" selected>1. Diagnóstico General</option>
-                                    <option value="apertura">2. Apertura y Reparación</option>
-                                    <option value="pruebas">3. Pruebas Funcionales</option>
-                                    <option value="limpieza">4. Limpieza y Alistamiento</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="eq-sap-id">ID de Orden SAP PM (Opcional)</label>
-                                <input type="text" id="eq-sap-id" placeholder="Ej. PM-2026-1002" class="form-control">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="eq-soft-op">Operación de Software Realizada (SAP PM)</label>
-                                <select id="eq-soft-op">
-                                    <option value="Ninguna (Hardware)" selected>Ninguna (Hardware / Apertura)</option>
-                                    <option value="Carga de Firmware Oficial OS">Carga de Firmware Oficial OS</option>
-                                    <option value="Inyección de Llaves Credibanco">Inyección de Llaves Credibanco</option>
-                                    <option value="Restablecimiento Parámetros WiFi/GPRS">Restablecimiento Parámetros WiFi/GPRS</option>
-                                    <option value="Calibración de Batería (Fuel Gauge)">Calibración de Batería (Fuel Gauge)</option>
-                                    <option value="Factory Reset / Borrado Seguro">Factory Reset / Borrado Seguro</option>
-                                </select>
-                            </div>
-
-                            <!-- Alerta de disponibilidad de repuestos en almacén -->
-                            <div id="form-stock-alert" style="margin-bottom: 12px; font-size: 11.5px; display: none; padding: 10px; border-radius: 6px; border: 1px solid #d4d2c8;">
-                                <!-- Dinámico -->
-                            </div>
-
-                            <div class="form-group">
-                                <label for="eq-notes">Notas del Técnico</label>
-                                <textarea id="eq-notes" rows="3" placeholder="Detalla condiciones iniciales o mediciones físicas..."></textarea>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary" id="form-submit-btn">
-                                <i data-lucide="plus"></i> Ingresar al Proceso
-                            </button>
-                            <button type="button" class="btn btn-secondary" id="form-cancel-btn" style="display: none; margin-top: 8px;">
-                                Cancelar Edición
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- COLUMNA DERECHA: GUÍA DE DIAGNÓSTICOS RÁPIDOS -->
-                <div class="col-right">
-                    <div class="control-panel" style="min-height: 480px;">
-                        <h2 class="panel-title">
-                            <i data-lucide="book-open" style="color: var(--aquamarine);"></i>
-                            <span>Guías y Protocolos Técnicos</span>
-                        </h2>
-                        
-                        <div class="diagnostic-search">
-                            <input type="text" id="diagnostic-input" placeholder="Buscar falla (ej. puerto, batería, software)..." class="form-control" style="padding-left: 40px;">
-                            <i data-lucide="search" style="position: absolute; left: 15px; top: 13px; color: var(--text-secondary); width: 14px; height: 14px;"></i>
-                        </div>
-
-                        <div class="diagnostic-results" id="diagnostic-results">
-                            <!-- Dinámico -->
-                        </div>
-                    </div>
-                </div>
-
-            </main>
+    <!-- FILTRO POR TÉCNICO -->
+    <div id="tech-filter-banner" style="display: none; justify-content: space-between; align-items: center; background: rgba(0, 175, 170, 0.08); border: 1px solid var(--aquamarine); padding: 12px 20px; border-radius: 12px; margin-bottom: 20px;">
+        <div style="font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="user-check" style="color: var(--aquamarine);"></i>
+            <span>Vista personal filtrada para: <strong id="tech-filter-name" style="color: var(--aquamarine);"></strong></span>
         </div>
-
-
-        <!-- ================= MÓDULO 2: ALMACÉN DE REPUESTOS ================= -->
-        <div id="module-inventory" class="module-view">
-            
-            <section class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-info">
-                        <h3>Stock Total Piezas</h3>
-                        <div class="metric-value" id="metric-inv-total">0</div>
-                    </div>
-                    <div class="metric-icon">
-                        <i data-lucide="box"></i>
-                    </div>
-                </div>
-
-                <div class="metric-card">
-                    <div class="metric-info">
-                        <h3>Stock Crítico (Bajo)</h3>
-                        <div class="metric-value" id="metric-inv-low" style="color: var(--ochre-yellow);">0</div>
-                    </div>
-                    <div class="metric-icon">
-                        <i data-lucide="alert-triangle" style="color: var(--ochre-yellow);"></i>
-                    </div>
-                </div>
-
-                <div class="metric-card">
-                    <div class="metric-info">
-                        <h3>Agotados en Taller</h3>
-                        <div class="metric-value" id="metric-inv-out" style="color: var(--terracotta);">0</div>
-                    </div>
-                    <div class="metric-icon">
-                        <i data-lucide="alert-octagon" style="color: var(--terracotta);"></i>
-                    </div>
-                </div>
-
-                <div class="metric-card">
-                    <div class="metric-info">
-                        <h3>Abastecimiento</h3>
-                        <div class="metric-value" id="metric-inv-status">100%</div>
-                    </div>
-                    <div class="metric-icon">
-                        <i data-lucide="activity"></i>
-                    </div>
-                </div>
-            </section>
-
-            <main class="main-layout">
-                
-                <!-- REGISTRAR REPUESTO -->
-                <div class="col-left">
-                    <div class="control-panel">
-                        <h2 class="panel-title">
-                            <i data-lucide="file-plus" style="color: var(--aquamarine);"></i>
-                            <span>Ingresar Nuevo Repuesto</span>
-                        </h2>
-                        
-                        <form id="inventory-form">
-                            <input type="hidden" id="inv-edit-index" value="-1">
-                            
-                            <div class="form-group">
-                                <label for="part-name">Nombre del Componente</label>
-                                <input type="text" id="part-name" placeholder="Ej. Batería Li-Po DX8000" required class="form-control">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="part-model">Modelos Compatibles</label>
-                                <input type="text" id="part-model" placeholder="Ej. Ingenico Axium DX8000" required class="form-control">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="part-qty">Cantidad Inicial en Stock</label>
-                                <input type="number" id="part-qty" min="0" placeholder="Ej. 10" required class="form-control">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="part-min">Umbral de Alerta (Stock Mínimo)</label>
-                                <input type="number" id="part-min" min="1" placeholder="Ej. 4" required class="form-control">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="part-location">Ubicación Física (Gabinete/Cajón)</label>
-                                <input type="text" id="part-location" placeholder="Ej. Estante A-3, Cajón 1" required class="form-control">
-                            </div>
-
-                            <button type="submit" class="btn btn-primary" id="inv-submit-btn">
-                                <i data-lucide="save"></i> Guardar en Almacén
-                            </button>
-                            <button type="button" class="btn btn-secondary" id="inv-cancel-btn" style="display: none; margin-top: 8px;">
-                                Cancelar Edición
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- TABLA DE INVENTARIO -->
-                <div class="col-right">
-                    <div class="control-panel" style="min-height: 480px;">
-                        <h2 class="panel-title">
-                            <i data-lucide="layers" style="color: var(--aquamarine);"></i>
-                            <span>Repuestos en Almacén</span>
-                        </h2>
-
-                        <div class="table-filters">
-                            <div class="search-filter">
-                                <input type="text" id="inventory-search" placeholder="Buscar por repuesto o compatibilidad..." class="form-control" style="padding-left: 40px;">
-                                <i data-lucide="search" style="position: absolute; left: 15px; top: 13px; color: var(--text-secondary); width: 14px; height: 14px;"></i>
-                            </div>
-                            <div class="status-tabs" id="inventory-filters">
-                                <button class="tab-btn active" data-filter="all">Todos</button>
-                                <button class="tab-btn" data-filter="ok">Abastecidos</button>
-                                <button class="tab-btn" data-filter="alert">Críticos / Sin Stock</button>
-                            </div>
-                        </div>
-
-                        <div class="repair-table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Repuesto / Ubicación</th>
-                                        <th>Compatibilidad</th>
-                                        <th>Stock Disponible</th>
-                                        <th>Estado</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="inventory-table-body">
-                                    <!-- Dinámico -->
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div id="no-inv-msg" style="text-align: center; color: var(--text-secondary); padding: 40px 0; display: none;">
-                            <i data-lucide="inbox" style="width: 48px; height: 48px; margin-bottom: 10px; opacity: 0.5;"></i>
-                            <p>No se encontraron repuestos.</p>
-                        </div>
-                    </div>
-                </div>
-
-            </main>
-        </div>
-
-
-        <!-- ================= MÓDULO 3: PERSONAL & HERRAMIENTAS ================= -->
-        <div id="module-staff" class="module-view">
-            
-            <section class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-info">
-                        <h3>Técnicos Registrados</h3>
-                        <div class="metric-value" id="metric-tech-count">0</div>
-                    </div>
-                    <div class="metric-icon">
-                        <i data-lucide="users"></i>
-                    </div>
-                </div>
-
-                <div class="metric-card">
-                    <div class="metric-info">
-                        <h3>Herramientas Activas</h3>
-                        <div class="metric-value" id="metric-tools-count">0</div>
-                    </div>
-                    <div class="metric-icon">
-                        <i data-lucide="hammer"></i>
-                    </div>
-                </div>
-
-                <div class="metric-card">
-                    <div class="metric-info">
-                        <h3>Equipamiento Libre</h3>
-                        <div class="metric-value" id="metric-tools-unassigned">0</div>
-                    </div>
-                    <div class="metric-icon">
-                        <i data-lucide="package"></i>
-                    </div>
-                </div>
-
-                <div class="metric-card">
-                    <div class="metric-info">
-                        <h3>Control de Custodia</h3>
-                        <div class="metric-value" style="color: var(--aquamarine);">100%</div>
-                    </div>
-                    <div class="metric-icon">
-                        <i data-lucide="shield-check"></i>
-                    </div>
-                </div>
-            </section>
-
-            <main class="main-layout">
-                
-                <!-- COLUMNA IZQUIERDA: REGISTRO DE PERSONAL -->
-                <div class="col-left">
-                    
-                    <!-- CREAR TÉCNICO -->
-                    <div class="control-panel">
-                        <h2 class="panel-title">
-                            <i data-lucide="user-plus" style="color: var(--aquamarine);"></i>
-                            <span>Registrar Nuevo Técnico</span>
-                        </h2>
-                        
-                        <form id="tech-form">
-                            <div class="form-group">
-                                <label for="tech-name">Nombre Completo del Técnico</label>
-                                <input type="text" id="tech-name" placeholder="Ej. Carlos Mendoza" required class="form-control">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="tech-specialty">Especialidad Operativa</label>
-                                <select id="tech-specialty" required>
-                                    <option value="" disabled selected>Selecciona especialidad...</option>
-                                    <option value="Hardware (Electrónica/Soldadura)">Hardware (Electrónica/Soldadura)</option>
-                                    <option value="Software (Carga/Sistemas OS)">Software (Carga/Sistemas OS)</option>
-                                    <option value="Calidad y Pruebas (QA)">Calidad y Pruebas (QA)</option>
-                                    <option value="Generalista Técnico">Generalista Técnico</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Permisos de Estación Asignados</label>
-                                <div class="permissions-grid">
-                                    <label class="checkbox-group">
-                                        <input type="checkbox" id="perm-recibo" value="recibo" checked> 1. Recibo
-                                    </label>
-                                    <label class="checkbox-group">
-                                        <input type="checkbox" id="perm-diagnostico" value="diagnostico" checked> 2. Diagnóstico
-                                    </label>
-                                    <label class="checkbox-group">
-                                        <input type="checkbox" id="perm-reparacion" value="reparacion" checked> 3. Reparación
-                                    </label>
-                                    <label class="checkbox-group">
-                                        <input type="checkbox" id="perm-software" value="software" checked> 4. Software
-                                    </label>
-                                    <label class="checkbox-group" style="grid-column: span 2;">
-                                        <input type="checkbox" id="perm-test" value="test" checked> 5. Test Funcional (QA)
-                                    </label>
-                                </div>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary">
-                                <i data-lucide="user-check"></i> Registrar Técnico
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- REGISTRAR/ASIGNAR HERRAMIENTA -->
-                    <div class="control-panel">
-                        <h2 class="panel-title">
-                            <i data-lucide="wrench" style="color: var(--aquamarine);"></i>
-                            <span>Control de Custodia de Herramientas</span>
-                        </h2>
-                        
-                        <form id="tool-form">
-                            <div class="form-group">
-                                <label for="tool-name">Nombre de la Herramienta</label>
-                                <input type="text" id="tool-name" placeholder="Ej. Osciloscopio Rigol DS1054Z" required class="form-control">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="tool-code">Código de Inventario Interno</label>
-                                <input type="text" id="tool-code" placeholder="Ej. HER-01928" required class="form-control">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="tool-tech">Técnico Asignado (Custodia)</label>
-                                <select id="tool-tech" required>
-                                    <option value="" disabled selected>Asigna un responsable...</option>
-                                    <!-- Dinámico -->
-                                </select>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary">
-                                <i data-lucide="hammer"></i> Registrar & Asignar
-                            </button>
-                        </form>
-                    </div>
-
-                </div>
-
-                <!-- COLUMNA DERECHA: TABLERO DE TÉCNICOS Y HERRAMIENTAS -->
-                <div class="col-right">
-                    
-                    <!-- PERFILES DE TÉCNICOS -->
-                    <div class="control-panel">
-                        <h2 class="panel-title">
-                            <i data-lucide="contact-2" style="color: var(--aquamarine);"></i>
-                            <span>Técnicos Activos & Enlaces Personales</span>
-                        </h2>
-                        
-                        <div class="technician-card-grid" id="tech-cards-container">
-                            <!-- Inyectado dinámicamente -->
-                        </div>
-                    </div>
-
-                    <!-- TABLA DE HERRAMIENTAS -->
-                    <div class="control-panel">
-                        <h2 class="panel-title">
-                            <i data-lucide="archive" style="color: var(--aquamarine);"></i>
-                            <span>Equipamiento de Laboratorio Asignado</span>
-                        </h2>
-
-                        <div class="repair-table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Herramienta / Código</th>
-                                        <th>Técnico Responsable</th>
-                                        <th>Estado Custodia</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tools-table-body">
-                                    <!-- Dinámico -->
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div id="no-tools-msg" style="text-align: center; color: var(--text-secondary); padding: 25px 0; display: none;">
-                            <i data-lucide="tool" style="width: 32px; height: 32px; margin-bottom: 5px; opacity: 0.5;"></i>
-                            <p>No hay herramientas registradas en el taller.</p>
-                        </div>
-                    </div>
-
-                </div>
-
-            </main>
-        </div>
-
-
-        <!-- ================= MÓDULO 4: MONITOR TV (PANTALLA DE PROYECCIÓN GIGANTE) ================= -->
-        <div id="module-tv" class="module-view">
-            
-            <!-- TICKER ROTATIVO DE NOTICIAS DE TRABAJO -->
-            <div class="ticker-container">
-                <span class="ticker-label"><i data-lucide="megaphone" style="width:12px; height:12px; display:inline; vertical-align:middle; margin-right:4px;"></i> NOTICIAS DEL LAB</span>
-                <span class="ticker-text" id="tv-ticker-msg">Inicializando monitor general del laboratorio...</span>
-            </div>
-
-            <div class="tv-dashboard-layout">
-                
-                <!-- COLUMNA IZQUIERDA: COMPAÑEROS EN ACCIÓN -->
-                <div class="tv-col-left">
-                    <div class="control-panel" style="border: 2px solid var(--aquamarine); box-shadow: 0 10px 30px rgba(0, 175, 170, 0.08);">
-                        <h2 class="panel-title" style="font-size:20px; border-bottom: 2px solid #cbd5e1; padding-bottom: 12px;">
-                            <i data-lucide="trophy" style="color: var(--ochre-yellow); width: 24px; height: 24px;"></i>
-                            <span>Compañeros en Acción - Carga & Avance Diario</span>
-                        </h2>
-                        
-                        <div style="display:flex; flex-direction:column; gap:20px; margin-top:20px;" id="tv-team-progress-container">
-                            <!-- Escalafón de técnicos dinámico -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- COLUMNA DERECHA: INDICADORES DEL DÍA & ALERTAS -->
-                <div class="tv-col-right" style="display:flex; flex-direction:column; gap:25px;">
-                    
-                    <!-- Tarjeta de Equipos en Cola Completa (TV) -->
-                    <div class="metric-card-tv">
-                        <h3>Equipos en Proceso Total</h3>
-                        <div class="metric-value-tv" id="tv-total-active">0</div>
-                        <p style="font-size:12.5px; color:var(--text-secondary); font-weight:600; text-transform:uppercase;">Datáfonos en el flujo activo</p>
-                    </div>
-
-                    <!-- Métrica del KPI "TAT" (Turnaround Time Promedio) de Laboratorio -->
-                    <div class="metric-card-tv" style="border-color: var(--ochre-yellow);">
-                        <h3>Tiempo de Retorno (TAT Promedio)</h3>
-                        <div class="metric-value-tv" id="tv-tat-val" style="color: var(--ochre-dark);">1d 4h</div>
-                        <p style="font-size:12.5px; color:var(--text-secondary); font-weight:600; text-transform:uppercase;">Tiempo total de ciclo de entrega</p>
-                    </div>
-
-                    <!-- Tarjeta de Eficiencia del Laboratorio (TV) -->
-                    <div class="metric-card-tv" style="border-color: var(--aquamarine);">
-                        <h3>Eficiencia Técnica General</h3>
-                        <div class="metric-value-tv" id="tv-efficiency-val" style="color: var(--aquamarine);">100%</div>
-                        <p style="font-size:12.5px; color:var(--text-secondary); font-weight:600; text-transform:uppercase;">Índice de despachos exitosos</p>
-                    </div>
-
-                    <!-- Alertas críticas de almacén en pantalla grande -->
-                    <div class="control-panel" style="border: 1px solid #f1f5f9;">
-                        <h4 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--terracotta); display: flex; align-items: center; gap: 6px; margin-bottom: 15px;">
-                            <i data-lucide="alert-octagon"></i> ALERTA CRÍTICA: REPUESTOS AGOTADOS
-                        </h4>
-                        <div style="display:flex; flex-direction:column; gap:10px; font-size:13px;" id="tv-critical-stock-alerts">
-                            <!-- Inyectado dinámicamente -->
-                        </div>
-                    </div>
-
-                    <!-- PANEL DE CONTROL 5S - AUDITORÍA DIARIA (LEAN) -->
-                    <div class="control-panel" style="border: 2px solid var(--ochre-yellow); box-shadow: 0 10px 30px rgba(255, 198, 0, 0.08);">
-                        <h4 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ochre-dark); display: flex; align-items: center; gap: 6px; margin-bottom: 12px; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px;">
-                            <i data-lucide="clipboard-check"></i> CONTROL 5S - AUDITORÍA DIARIA DEL TALLER
-                        </h4>
-                        <div style="display:flex; flex-direction:column; gap:8px;">
-                            <label class="checklist-5s-item">
-                                <input type="checkbox" id="chk-5s-seiri" onchange="update5SStatus()">
-                                <span><strong>Clasificar (Seiri):</strong> Gavetas sin elementos ajenos al proceso.</span>
-                            </label>
-                            <label class="checklist-5s-item">
-                                <input type="checkbox" id="chk-5s-seiton" onchange="update5SStatus()">
-                                <span><strong>Organizar (Seiton):</strong> Herramientas bajo custodia en su lugar.</span>
-                            </label>
-                            <label class="checklist-5s-item">
-                                <input type="checkbox" id="chk-5s-seiso" onchange="update5SStatus()">
-                                <span><strong>Limpiar (Seiso):</strong> Mesas libres de flux y residuos de estaño.</span>
-                            </label>
-                            <label class="checklist-5s-item">
-                                <input type="checkbox" id="chk-5s-seiketsu" onchange="update5SStatus()">
-                                <span><strong>Estandarizar (Seiketsu):</strong> Pulsera antiestática y EPP en uso.</span>
-                            </label>
-                            <label class="checklist-5s-item">
-                                <input type="checkbox" id="chk-5s-shitsuke" onchange="update5SStatus()">
-                                <span><strong>Disciplinar (Shitsuke):</strong> Check diario completado.</span>
-                            </label>
-                            
-                            <div id="tv-5s-status" style="margin-top: 10px; font-weight: bold; text-align: center; padding: 6px; border-radius: 6px; font-size: 12px; background: rgba(239, 68, 68, 0.08); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.15);">
-                                ❌ Pendiente de Auditoría
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- FOOTER -->
-        <footer>
-            <p>© 2026 <strong>CrediLab</strong>. Sistema modular de flujo de procesos y gestión de recursos físicos de taller.</p>
-            <p style="margin-top: 5px; opacity: 0.7;">Desarrollado para el Laboratorio Central de Datáfonos | Coordinador Técnico de Área: <strong>Ing. Andrés Arenas Díaz</strong></p>
-        </footer>
-
+        <button onclick="clearTechFilter()" class="btn" style="width: auto; padding: 6px 12px; font-size: 11.5px; background: rgba(255, 198, 0, 0.15); color: #b88a00; border: 1px solid var(--ochre-yellow);">
+            <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Ver Todo
+        </button>
     </div>
 
-    <!-- Script de Lógica principal -->
-    <script src="app.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
-                lucide.createIcons();
-            } else {
-                console.warn("Lucide icons are unavailable (offline/blocked).");
-            }
-        });
-    </script>
+    <!-- ================= MÓDULO 1: ESTACIONES ================= -->
+    <div id="module-repairs" class="module-view active">
+        <section class="metrics-grid">
+            <div class="metric-card"><div class="metric-info"><h3>Diagnóstico</h3><div class="metric-value" id="metric-recibo">0</div></div><div class="metric-icon"><i data-lucide="file-text"></i></div></div>
+            <div class="metric-card"><div class="metric-info"><h3>Reparación</h3><div class="metric-value" id="metric-taller">0</div></div><div class="metric-icon"><i data-lucide="activity"></i></div></div>
+            <div class="metric-card"><div class="metric-info"><h3>Pruebas</h3><div class="metric-value" id="metric-software">0</div></div><div class="metric-icon"><i data-lucide="binary"></i></div></div>
+            <div class="metric-card"><div class="metric-info"><h3>Eficiencia</h3><div class="metric-value" id="metric-repairs-eff">100%</div></div><div class="metric-icon"><i data-lucide="check-check"></i></div></div>
+        </section>
+
+        <section class="control-panel" style="background: rgba(255,255,255,0.4); border-color: rgba(0, 175, 170, 0.15);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+                <h2 class="panel-title" style="margin-bottom: 0; border-bottom: none; padding-bottom: 0;">
+                    <i data-lucide="arrow-right-left" style="color: var(--aquamarine);"></i>
+                    <span>Flujo Lineal de Equipos (One-Piece Flow)</span>
+                </h2>
+                <button class="btn btn-secondary" onclick="exportToCSV()" style="width: auto; font-size: 12px; padding: 7px 14px; display: inline-flex; align-items: center; gap: 6px;">
+                    <i data-lucide="file-spreadsheet" style="color: var(--aquamarine); width: 16px; height: 16px;"></i> Exportar Excel
+                </button>
+            </div>
+            <div class="pipeline-container" style="grid-template-columns: repeat(4, 1fr);">
+                <!-- DIAGNÓSTICO -->
+                <div class="pipeline-lane" id="lane-diagnostico">
+                    <div class="lane-header"><span class="lane-title">🔍 1. Diagnóstico</span><span class="lane-counter" id="count-diagnostico">0</span></div>
+                    <div class="lane-cards-container" id="cards-diagnostico"></div>
+                </div>
+                <!-- REPARACIÓN -->
+                <div class="pipeline-lane" id="lane-reparacion">
+                    <div class="lane-header"><span class="lane-title">🛠️ 2. Reparación</span><span class="lane-counter" id="count-reparacion">0</span></div>
+                    <div class="lane-cards-container" id="cards-reparacion"></div>
+                </div>
+                <!-- PRUEBAS -->
+                <div class="pipeline-lane" id="lane-pruebas">
+                    <div class="lane-header"><span class="lane-title">🧪 3. Pruebas</span><span class="lane-counter" id="count-pruebas">0</span></div>
+                    <div class="lane-cards-container" id="cards-pruebas"></div>
+                </div>
+                <!-- LIMPIEZA -->
+                <div class="pipeline-lane" id="lane-limpieza">
+                    <div class="lane-header"><span class="lane-title">💾 4. Limpieza</span><span class="lane-counter" id="count-limpieza">0</span></div>
+                    <div class="lane-cards-container" id="cards-limpieza"></div>
+                </div>
+            </div>
+        </section>
+
+        <main class="main-layout">
+            <div class="col-left">
+                <!-- Formulario Ingreso -->
+                <div class="control-panel">
+                    <h2 class="panel-title"><i data-lucide="plus-circle" style="color: var(--aquamarine);"></i><span>Ingresar Datáfono</span></h2>
+                    <form id="repair-form">
+                        <input type="hidden" id="edit-index" value="-1" />
+                        <div class="form-group"><label for="eq-model">Modelo</label>
+                            <select id="eq-model" required>
+                                <option value="" disabled selected>Selecciona...</option>
+                                <option value="Nexgo N6">Nexgo N6</option><option value="Nexgo N86">Nexgo N86</option>
+                                <option value="Nexgo KD69">Nexgo KD69</option><option value="Nexgo UN20">Nexgo UN20</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label for="eq-serial">Número de Serie (S/N)</label><input type="text" id="eq-serial" placeholder="Ej. SN-82918239" required class="form-control" /></div>
+                        <div class="form-group"><label for="eq-failure-type">Falla Reportada</label>
+                            <select id="eq-failure-type" required>
+                                <option value="" disabled selected>Selecciona...</option>
+                                <option value="Puerto de carga dañado">Puerto de carga dañado</option>
+                                <option value="Batería no retiene carga">Batería dañada</option>
+                                <option value="Lector de chip no lee">Lector de chip falla</option>
+                                <option value="Alerta de Seguridad (Tamper)">Tamper Alert</option>
+                                <option value="Error de software / Loop">Loop Software</option>
+                                <option value="Falla de Comunicación">Falla Comunicación</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label for="eq-tech-assign">Técnico</label><select id="eq-tech-assign" required></select></div>
+                        <div class="form-group"><label for="eq-station">Estación Inicial</label>
+                            <select id="eq-station" required>
+                                <option value="diagnostico">1. Diagnóstico</option>
+                                <option value="reparacion">2. Reparación</option>
+                                <option value="pruebas">3. Pruebas</option>
+                                <option value="limpieza">4. Limpieza</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label for="eq-sap-id">ID Orden SAP</label><input type="text" id="eq-sap-id" placeholder="Ej. PM-2026-1002" class="form-control" /></div>
+                        <div class="form-group"><label for="eq-notes">Notas iniciales</label><textarea id="eq-notes" rows="3" placeholder="Detalles técnicos..."></textarea></div>
+                        <button type="submit" class="btn btn-primary" id="form-submit-btn"><i data-lucide="plus"></i> Ingresar</button>
+                    </form>
+                </div>
+                <!-- Stock asignado al técnico -->
+                <div class="control-panel" id="tech-stock-panel" style="display:none;">
+                    <h2 class="panel-title"><i data-lucide="package" style="color: var(--ochre-yellow);"></i><span>Mi Banco de Repuestos</span></h2>
+                    <div id="tech-stock-list" style="font-size:13px;"></div>
+                </div>
+            </div>
+            <div class="col-right">
+                <div class="control-panel" style="min-height: 480px;">
+                    <h2 class="panel-title"><i data-lucide="book-open" style="color: var(--aquamarine);"></i><span>Guías Técnicas</span></h2>
+                    <div class="diagnostic-search"><input type="text" id="diagnostic-input" placeholder="Buscar falla..." class="form-control" style="padding-left: 40px;" /><i data-lucide="search" style="position: absolute; left: 15px; top: 13px; color: var(--text-secondary); width: 14px; height: 14px;"></i></div>
+                    <div class="diagnostic-results" id="diagnostic-results"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ================= MÓDULO 2: ALMACÉN ================= -->
+    <div id="module-inventory" class="module-view">
+        <section class="metrics-grid">
+            <div class="metric-card"><div class="metric-info"><h3>Stock Total</h3><div class="metric-value" id="metric-inv-total">0</div></div><div class="metric-icon"><i data-lucide="box"></i></div></div>
+            <div class="metric-card"><div class="metric-info"><h3>Stock Crítico</h3><div class="metric-value" id="metric-inv-low" style="color: var(--ochre-yellow);">0</div></div><div class="metric-icon"><i data-lucide="alert-triangle"></i></div></div>
+            <div class="metric-card"><div class="metric-info"><h3>Agotados</h3><div class="metric-value" id="metric-inv-out" style="color: var(--terracotta);">0</div></div><div class="metric-icon"><i data-lucide="alert-octagon"></i></div></div>
+            <div class="metric-card"><div class="metric-info"><h3>Abastecimiento</h3><div class="metric-value" id="metric-inv-status">100%</div></div><div class="metric-icon"><i data-lucide="activity"></i></div></div>
+        </section>
+        <main class="main-layout">
+            <div class="col-left">
+                <div class="control-panel">
+                    <h2 class="panel-title"><i data-lucide="file-plus" style="color: var(--aquamarine);"></i><span>Gestionar Repuesto</span></h2>
+                    <form id="inventory-form">
+                        <input type="hidden" id="inv-edit-index" value="-1" />
+                        <div class="form-group"><label for="part-name">Nombre</label><input type="text" id="part-name" placeholder="Ej. Batería Litio" required class="form-control" /></div>
+                        <div class="form-group"><label for="part-model">Modelo Compatible</label><input type="text" id="part-model" placeholder="Ej. N86, UN20" required class="form-control" /></div>
+                        <div class="form-group"><label for="part-qty">Cantidad</label><input type="number" id="part-qty" min="0" required class="form-control" /></div>
+                        <div class="form-group"><label for="part-min">Stock Mínimo</label><input type="number" id="part-min" min="1" required class="form-control" /></div>
+                        <div class="form-group"><label for="part-location">Ubicación</label><input type="text" id="part-location" placeholder="Estante A-1" required class="form-control" /></div>
+                        <button type="submit" class="btn btn-primary" id="inv-submit-btn"><i data-lucide="save"></i> Guardar</button>
+                        <button type="button" class="btn btn-secondary" id="inv-cancel-btn" style="display: none; margin-top: 8px;">Cancelar</button>
+                    </form>
+                    <!-- Asignar stock a técnico -->
+                    <div id="assign-stock-panel" style="display:none; margin-top:20px; border-top:1px solid #e2e8f0; padding-top:15px;">
+                        <h3 style="font-size:14px; font-weight:600; color:var(--aquamarine);"><i data-lucide="user-plus"></i> Asignar Stock a Técnico</h3>
+                        <div class="form-group"><label for="assign-tech">Técnico</label><select id="assign-tech" class="form-control"></select></div>
+                        <div class="form-group"><label for="assign-part">Repuesto</label><select id="assign-part" class="form-control"></select></div>
+                        <div class="form-group"><label for="assign-qty">Cantidad</label><input type="number" id="assign-qty" min="1" value="1" class="form-control" /></div>
+                        <button class="btn btn-primary" onclick="assignStockToTech()"><i data-lucide="send"></i> Asignar</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-right">
+                <div class="control-panel" style="min-height: 480px;">
+                    <h2 class="panel-title"><i data-lucide="layers" style="color: var(--aquamarine);"></i><span>Inventario</span></h2>
+                    <div class="table-filters">
+                        <div class="search-filter"><input type="text" id="inventory-search" placeholder="Buscar..." class="form-control" style="padding-left: 40px;" /><i data-lucide="search" style="position: absolute; left: 15px; top: 13px; color: var(--text-secondary); width: 14px; height: 14px;"></i></div>
+                        <div class="status-tabs" id="inventory-filters">
+                            <button class="tab-btn active" data-filter="all">Todos</button>
+                            <button class="tab-btn" data-filter="ok">Abastecidos</button>
+                            <button class="tab-btn" data-filter="alert">Críticos</button>
+                        </div>
+                    </div>
+                    <div class="repair-table-container">
+                        <table><thead><tr><th>Repuesto / Ubicación</th><th>Compatibilidad</th><th>Stock</th><th>Estado</th><th>Acciones</th></tr></thead>
+                        <tbody id="inventory-table-body"></tbody></table>
+                    </div>
+                    <div id="no-inv-msg" style="text-align: center; color: var(--text-secondary); padding: 40px 0; display: none;"><i data-lucide="inbox" style="width: 48px; height: 48px; margin-bottom: 10px; opacity: 0.5;"></i><p>No se encontraron repuestos.</p></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ================= MÓDULO 3: PERSONAL ================= -->
+    <div id="module-staff" class="module-view">
+        <section class="metrics-grid">
+            <div class="metric-card"><div class="metric-info"><h3>Técnicos</h3><div class="metric-value" id="metric-tech-count">0</div></div><div class="metric-icon"><i data-lucide="users"></i></div></div>
+            <div class="metric-card"><div class="metric-info"><h3>Herramientas</h3><div class="metric-value" id="metric-tools-count">0</div></div><div class="metric-icon"><i data-lucide="hammer"></i></div></div>
+            <div class="metric-card"><div class="metric-info"><h3>Libres</h3><div class="metric-value" id="metric-tools-unassigned">0</div></div><div class="metric-icon"><i data-lucide="package"></i></div></div>
+            <div class="metric-card"><div class="metric-info"><h3>Custodia</h3><div class="metric-value" style="color: var(--aquamarine);">100%</div></div><div class="metric-icon"><i data-lucide="shield-check"></i></div></div>
+        </section>
+        <main class="main-layout">
+            <div class="col-left">
+                <div class="control-panel" id="panel-register-tech">
+                    <h2 class="panel-title"><i data-lucide="user-plus" style="color: var(--aquamarine);"></i><span>Registrar / Editar Técnico</span></h2>
+                    <form id="tech-form">
+                        <input type="hidden" id="tech-edit-id" value="" />
+                        <div class="form-group"><label for="tech-name">Nombre</label><input type="text" id="tech-name" placeholder="Nombre completo" required class="form-control" /></div>
+                        <div class="form-group"><label for="tech-specialty">Especialidad</label>
+                            <select id="tech-specialty" required>
+                                <option value="" disabled selected>Selecciona...</option>
+                                <option value="Hardware">Hardware</option>
+                                <option value="Software">Software</option>
+                                <option value="Calidad">Calidad</option>
+                                <option value="Generalista">Generalista</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Permisos (Estaciones)</label>
+                            <div class="permissions-grid">
+                                <label class="checkbox-group"><input type="checkbox" id="perm-recibo" checked /> 1. Diagnóstico</label>
+                                <label class="checkbox-group"><input type="checkbox" id="perm-diagnostico" checked /> 2. Reparación</label>
+                                <label class="checkbox-group"><input type="checkbox" id="perm-reparacion" checked /> 3. Pruebas</label>
+                                <label class="checkbox-group"><input type="checkbox" id="perm-software" checked /> 4. Limpieza</label>
+                                <label class="checkbox-group" style="grid-column: span 2;"><input type="checkbox" id="perm-test" checked /> 5. Todas</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="tech-submit-btn"><i data-lucide="user-check"></i> Registrar</button>
+                        <button type="button" class="btn btn-secondary" id="tech-cancel-btn" style="display: none; margin-top: 8px;">Cancelar</button>
+                    </form>
+                    <!-- Asignación de Estación Diaria (Banco) -->
+                    <div style="margin-top:20px; border-top:1px solid #e2e8f0; padding-top:15px;">
+                        <h3 style="font-size:14px; font-weight:600; color:var(--ochre-dark);"><i data-lucide="calendar-clock"></i> Asignar Estación del Día (Banco)</h3>
+                        <div class="form-group"><label for="station-assign-tech">Técnico</label><select id="station-assign-tech" class="form-control"></select></div>
+                        <div class="form-group"><label for="station-assign-station">Estación</label>
+                            <select id="station-assign-station" class="form-control">
+                                <option value="diagnostico">Diagnóstico</option>
+                                <option value="reparacion">Reparación</option>
+                                <option value="pruebas">Pruebas</option>
+                                <option value="limpieza">Limpieza</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-secondary" onclick="assignDailyStation()"><i data-lucide="save"></i> Guardar Asignación</button>
+                    </div>
+                </div>
+                <div class="control-panel">
+                    <h2 class="panel-title"><i data-lucide="wrench" style="color: var(--aquamarine);"></i><span>Asignar Herramienta</span></h2>
+                    <form id="tool-form">
+                        <div class="form-group"><label for="tool-name">Herramienta</label><input type="text" id="tool-name" placeholder="Ej. Multímetro" required class="form-control" /></div>
+                        <div class="form-group"><label for="tool-code">Código</label><input type="text" id="tool-code" placeholder="Ej. HER-001" required class="form-control" /></div>
+                        <div class="form-group"><label for="tool-tech">Técnico</label><select id="tool-tech" required></select></div>
+                        <button type="submit" class="btn btn-primary"><i data-lucide="hammer"></i> Asignar</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-right">
+                <div class="control-panel">
+                    <h2 class="panel-title"><i data-lucide="contact-2" style="color: var(--aquamarine);"></i><span>Técnicos Activos</span></h2>
+                    <div class="technician-card-grid" id="tech-cards-container"></div>
+                </div>
+                <div class="control-panel">
+                    <h2 class="panel-title"><i data-lucide="archive" style="color: var(--aquamarine);"></i><span>Equipamiento</span></h2>
+                    <table><thead><tr><th>Herramienta / Código</th><th>Responsable</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <tbody id="tools-table-body"></tbody></table>
+                    <div id="no-tools-msg" style="text-align: center; padding: 25px 0; display: none;">No hay herramientas.</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ================= MÓDULO 4: TV ================= -->
+    <div id="module-tv" class="module-view">
+        <div class="ticker-container"><span class="ticker-label"><i data-lucide="megaphone"></i> NOTICIAS</span><span class="ticker-text" id="tv-ticker-msg">Inicializando monitor...</span></div>
+        <div id="bottleneck-alert" style="display:none; background: rgba(239,68,68,0.1); border: 2px solid var(--danger); color: var(--danger); padding: 12px 20px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; font-size: 16px; text-align: center; animation: pulse 1.5s infinite;"></div>
+        <div class="tv-dashboard-layout">
+            <div class="tv-col-left">
+                <div class="control-panel" style="border: 2px solid var(--aquamarine);">
+                    <h2 class="panel-title" style="font-size:20px;"><i data-lucide="trophy" style="color: var(--ochre-yellow);"></i><span>Compañeros en Acción</span></h2>
+                    <div style="display:flex; flex-direction:column; gap:20px; margin-top:20px;" id="tv-team-progress-container"></div>
+                </div>
+                <div class="control-panel" style="border: 2px solid var(--ochre-yellow);">
+                    <h3 style="font-size:16px; color:var(--ochre-dark);"><i data-lucide="clipboard-list"></i> 📦 ENTREGA DIARIA - CONSUMO</h3>
+                    <div id="daily-delivery-panel" style="font-size:13px; margin-top:10px;"></div>
+                </div>
+            </div>
+            <div class="tv-col-right" style="display:flex; flex-direction:column; gap:25px;">
+                <div class="metric-card-tv"><h3>Equipos en Proceso</h3><div class="metric-value-tv" id="tv-total-active">0</div></div>
+                <div class="metric-card-tv" style="border-color: var(--ochre-yellow);"><h3>TAT Promedio</h3><div class="metric-value-tv" id="tv-tat-val" style="color: var(--ochre-dark);">1d 4h</div></div>
+                <div class="metric-card-tv" style="border-color: var(--aquamarine);"><h3>Eficiencia</h3><div class="metric-value-tv" id="tv-efficiency-val" style="color: var(--aquamarine);">100%</div></div>
+                <div class="control-panel"><h4 style="color: var(--terracotta);"><i data-lucide="alert-octagon"></i> Alertas Críticas</h4><div id="tv-critical-stock-alerts"></div></div>
+                <div class="control-panel" style="border: 2px solid var(--ochre-yellow);">
+                    <h4 style="color: var(--ochre-dark);"><i data-lucide="clipboard-check"></i> Control 5S</h4>
+                    <div><label class="checkbox-item"><input type="checkbox" id="chk-5s-seiri" /> Clasificar</label></div>
+                    <div><label class="checkbox-item"><input type="checkbox" id="chk-5s-seiton" /> Organizar</label></div>
+                    <div><label class="checkbox-item"><input type="checkbox" id="chk-5s-seiso" /> Limpiar</label></div>
+                    <div><label class="checkbox-item"><input type="checkbox" id="chk-5s-seiketsu" /> Estandarizar</label></div>
+                    <div><label class="checkbox-item"><input type="checkbox" id="chk-5s-shitsuke" /> Disciplinar</label></div>
+                    <div id="tv-5s-status" style="margin-top:10px; font-weight:bold; text-align:center; padding:6px; border-radius:6px; background:rgba(239,68,68,0.08); color:var(--danger);">❌ Pendiente</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MÓDULO 5: ANALYTICS ================= -->
+    <div id="module-analytics" class="module-view">
+        <div class="control-panel">
+            <h2 class="panel-title"><i data-lucide="bar-chart-2" style="color: var(--aquamarine);"></i><span>Analytics y KPIs</span></h2>
+            <div style="display:flex; flex-wrap:wrap; gap:15px; margin-bottom:20px;">
+                <div class="form-group" style="flex:1; min-width:150px;"><label>Desde</label><input type="date" id="filter-date-from" class="form-control" /></div>
+                <div class="form-group" style="flex:1; min-width:150px;"><label>Hasta</label><input type="date" id="filter-date-to" class="form-control" /></div>
+                <div class="form-group" style="flex:1; min-width:150px;"><label>Modelo</label>
+                    <select id="filter-model" class="form-control">
+                        <option value="">Todos</option>
+                        <option value="Nexgo N6">N6</option><option value="Nexgo N86">N86</option>
+                        <option value="Nexgo KD69">KD69</option><option value="Nexgo UN20">UN20</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex:1; min-width:150px;"><label>Falla</label>
+                    <select id="filter-failure" class="form-control">
+                        <option value="">Todas</option>
+                        <option value="Puerto de carga dañado">Puerto</option>
+                        <option value="Batería no retiene carga">Batería</option>
+                        <option value="Lector de chip no lee">Lector</option>
+                        <option value="Alerta de Seguridad">Tamper</option>
+                        <option value="Error de software">Software</option>
+                        <option value="Falla de Comunicación">Comunicación</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex:1; min-width:150px;"><label>Técnico</label>
+                    <select id="filter-tech" class="form-control"><option value="">Todos</option></select>
+                </div>
+                <div style="display:flex; align-items:flex-end; gap:10px;">
+                    <button class="btn btn-primary" onclick="applyFilters()" style="width:auto; padding:10px 20px;"><i data-lucide="filter"></i> Filtrar</button>
+                    <button class="btn btn-secondary" onclick="exportFilteredData()" style="width:auto; padding:10px 20px;"><i data-lucide="download"></i> Exportar SAP</button>
+                </div>
+            </div>
+            <div id="analytics-results">
+                <p><strong>Total órdenes:</strong> <span id="analytics-total">0</span></p>
+                <p><strong>TAT Promedio:</strong> <span id="analytics-tat">-</span></p>
+                <p><strong>Tasa de éxito:</strong> <span id="analytics-success">-</span></p>
+                <div style="margin-top:15px;"><strong>Top Soluciones usadas:</strong> <div id="analytics-solutions"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MÓDULO 6: COORDINADOR ================= -->
+    <div id="module-coordinator" class="module-view">
+        <div class="control-panel">
+            <h2 class="panel-title"><i data-lucide="clipboard-check" style="color: var(--danger);"></i><span>Revisión de Equipos Irreparables</span></h2>
+            <div id="coordinator-review-list" style="margin-top:15px;"></div>
+            <div style="margin-top:20px; border-top:1px solid #e2e8f0; padding-top:15px;">
+                <h3>Equipos Descartados Definitivamente</h3>
+                <div id="coordinator-discarded-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2026 <strong>CCO Service Hub</strong> | Nexgo Colombia & China | Sistema de Gestión de Laboratorio</p>
+        <p style="margin-top: 5px; opacity: 0.7;">Coordinador: <strong>Ing. Wilson Andrés Arenas Díaz</strong></p>
+    </footer>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODALES GLOBALES -->
+<!-- ============================================================ -->
+
+<!-- MODAL CHECKLIST -->
+<div id="modal-checklist" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9998; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:30px; border-radius:16px; max-width:500px; width:90%; max-height:90%; overflow-y:auto;">
+        <h3 style="font-family:'Outfit',sans-serif; color:var(--aquamarine);">📋 Checklist de Diagnóstico</h3>
+        <div id="checklist-items" style="margin:15px 0;"></div>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="btn btn-primary" onclick="submitChecklist(true)" style="flex:1;">✅ Aprobado (Pasa)</button>
+            <button class="btn btn-secondary" onclick="submitChecklist(false)" style="flex:1; background:var(--danger); color:#fff;">❌ Falló (Va a Reparación)</button>
+        </div>
+        <button class="btn btn-secondary" onclick="closeModal('modal-checklist')" style="margin-top:10px;">Cerrar</button>
+    </div>
+</div>
+
+<!-- MODAL AGREGAR SOLUCIÓN (con radio buttons de repuestos asignados) -->
+<div id="modal-solution" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9998; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:30px; border-radius:16px; max-width:500px; width:90%;">
+        <h3 style="font-family:'Outfit',sans-serif; color:var(--ochre-dark);">🛠️ Agregar Solución</h3>
+        <input type="hidden" id="solution-order-id" />
+        <div class="form-group">
+            <label>Descripción de la Solución</label>
+            <textarea id="solution-desc" class="form-control" rows="2" placeholder="Ej. Cambio de puerto USB y flex" required></textarea>
+        </div>
+        <div class="form-group">
+            <label>Repuesto utilizado (selecciona uno de tu banco)</label>
+            <div id="solution-parts-container" style="margin-top:8px;">
+                <!-- Aquí se cargarán los repuestos asignados al técnico con radio buttons -->
+            </div>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="btn btn-primary" onclick="saveSolution()">💾 Guardar Solución</button>
+            <button class="btn btn-secondary" onclick="closeModal('modal-solution')">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL FOTO DE LLEGADA (DIAGNÓSTICO) -->
+<div id="modal-entry-photo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9998; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:30px; border-radius:16px; max-width:500px; width:90%;">
+        <h3 style="font-family:'Outfit',sans-serif; color:var(--aquamarine);">📸 Foto de Llegada (Diagnóstico)</h3>
+        <p style="font-size:13px; color:var(--text-secondary);">Registra el estado inicial del equipo al llegar al laboratorio.</p>
+        <input type="hidden" id="entry-photo-order-id" />
+        <div class="form-group"><label>Selecciona imagen</label><input type="file" accept="image/*" id="entry-photo-input" class="form-control" onchange="previewEntryPhoto(this)" /></div>
+        <div style="margin:10px 0; text-align:center;"><img id="entry-photo-preview" style="max-width:100%; max-height:200px; border:1px solid #ddd; border-radius:8px; display:none;" /></div>
+        <button class="btn btn-primary" onclick="saveEntryPhoto()">💾 Guardar Foto de Llegada</button>
+        <button class="btn btn-secondary" onclick="closeModal('modal-entry-photo')" style="margin-top:10px;">Cerrar</button>
+    </div>
+</div>
+
+<!-- MODAL FOTO DE SALIDA Y TIEMPO (LIMPIEZA) -->
+<div id="modal-exit-photo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9998; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:30px; border-radius:16px; max-width:500px; width:90%;">
+        <h3 style="font-family:'Outfit',sans-serif; color:var(--aquamarine);">🧹 Foto de Salida y Tiempo (Limpieza)</h3>
+        <p style="font-size:13px; color:var(--text-secondary);">Registra cómo se va el equipo y el tiempo invertido en limpieza.</p>
+        <input type="hidden" id="exit-photo-order-id" />
+        <div style="display:flex; gap:15px; margin:10px 0; align-items:center;">
+            <div><strong>Tiempo:</strong> <span id="cleaning-timer">00:00</span></div>
+            <button class="btn btn-secondary" onclick="startCleaningTimer()" style="width:auto; padding:5px 15px;">▶ Iniciar</button>
+            <button class="btn btn-secondary" onclick="stopCleaningTimer()" style="width:auto; padding:5px 15px;">⏹ Detener</button>
+        </div>
+        <div class="form-group"><label>Foto final (cómo se va)</label><input type="file" accept="image/*" id="exit-photo-input" class="form-control" onchange="previewExitPhoto(this)" /></div>
+        <div style="margin:10px 0; text-align:center;"><img id="exit-photo-preview" style="max-width:100%; max-height:200px; border:1px solid #ddd; border-radius:8px; display:none;" /></div>
+        <button class="btn btn-primary" onclick="saveExitPhotoAndTime()">✅ Finalizar Limpieza y Entregar</button>
+        <button class="btn btn-secondary" onclick="closeModal('modal-exit-photo')" style="margin-top:10px;">Cerrar</button>
+    </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+            lucide.createIcons();
+        }
+    });
+</script>
 </body>
 </html>
